@@ -1,0 +1,43 @@
+:emoji: [subsystem] Imperative subject
+# Ideally 50 chars ------------------------------>| max 72 char ------->|
+
+Problem:
+-
+# - Describe why the change was necessary here.
+# - Feel free to use multiple bullet points
+#   continuations should go on the indent of the letter, not the bullet.
+# - Ideally limit to 72 chars ----------------------------------------->|
+
+Solution:
+-
+# - Describe how you solve the problem here.
+# - Ideally limit to 72 chars ----------------------------------------->|
+
+# Mention what GitHub issue this relates to or closes.
+# [Resolves] #123
+
+# Emoji reference: Cmd+K/Ctrl+K @ https://gitmoji.dev
+#
+# Common emoji:
+# | Emoji              | Symbol | Reason                         |
+# | ------             | ------ | -------                        |
+# | :sparkles:         | ✨     | Introduce new features         |
+# | :bug:              | 🐛     | Fix a bug                      |
+# | :art:              | 🎨     | Improve structure / refactor   |
+# | :zap:              | ⚡️     | Improve performance            |
+# | :fire:             | 🔥     | Remove code                    |
+# | :memo:             | 📝     | Add/update documentation       |
+# | :white_check_mark: | ✅     | Add, update, or pass test      |
+# | :test_tube:        | 🧪     | Add a failing test             |
+# | :arrow_up:         | ⬆️      | Update dependencies            |
+# | :heavy_plus_sign:  | ➕     | Add dependencies               |
+# | :heavy_minus_sign: | ➖     | Remove dependencies            |
+# | :wrench:           | 🔧     | Add/update config files        |
+# | :hammer:           | 🔨     | Add/update development scripts |
+# | :label:            | 🏷️      | Add/update types               |
+# | :rotating_light:   | 🚨     | Fix linter warnings            |
+# | :lock:             | 🔒     | Fix security issues            |
+# | :recycle:          | ♻️      | Refactor code                  |
+# | :tada:             | 🎉     | Begin a project                |
+#
+# A guide for how to write a good commit message: https://cbea.ms/git-commit/
