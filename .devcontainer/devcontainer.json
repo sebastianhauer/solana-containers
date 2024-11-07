@@ -1,0 +1,56 @@
+{
+  "name": "Solana Containers Dev Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "bullseye"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:latest": {
+      "version": "latest",
+      "enableNonRootDocker": "true",
+      "moby": "true"
+    }
+  },
+  "remoteUser": "vscode",
+  "mounts": [
+    // Creates a named volume called profile, which will survive a rebuild
+    {
+      "source": "profile",
+      "target": "/home/vscode",
+      "type": "volume"
+    },
+    // Creates an anonymous volume that gets destroyed on rebuild
+    {
+      "target": "/home/vscode/.vscode-server",
+      "type": "volume"
+    },
+    {
+      "source": "${localEnv:HOME}${localEnv:USERPROFILE}/.ssh",
+      "target": "/home/vscode/.ssh",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}${localEnv:USERPROFILE}/.gitignore",
+      "target": "/home/vscode/.gitignore",
+      "type": "bind"
+    }
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.makefile-tools"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        }
+      }
+    }
+  }
+}
