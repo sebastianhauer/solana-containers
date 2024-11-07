@@ -64,11 +64,15 @@ buildx_args = \
 
 # Cache configuration
 BUILDX_CACHE_PATH ?= /tmp/.buildx-cache
+
+# Define comma for proper escaping
+comma := ,
+
 cache_args = $(if $(CI),\
-    --cache-from type=registry,ref=$(builder_tag) \
-    --cache-to type=registry,ref=$(builder_tag),mode=max,\
-    --cache-from type=local,src=$(BUILDX_CACHE_PATH) \
-    --cache-to type=local,dest=$(BUILDX_CACHE_PATH),mode=max)
+    --cache-from type=registry$(comma)ref=$(builder_tag) \
+    --cache-to type=registry$(comma)ref=$(builder_tag)$(comma)mode=max,\
+    --cache-from type=local$(comma)src=$(BUILDX_CACHE_PATH) \
+    --cache-to type=local$(comma)dest=$(BUILDX_CACHE_PATH)$(comma)mode=max)
 
 # Print build info
 define print_build_info
