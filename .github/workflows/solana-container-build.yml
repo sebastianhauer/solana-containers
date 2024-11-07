@@ -14,6 +14,11 @@ on:
   # Optional: Allow manual triggering
   workflow_dispatch:
 
+
+permissions:
+  contents: read
+  packages: write
+  
 jobs:
   builder:
     runs-on: ubuntu-latest

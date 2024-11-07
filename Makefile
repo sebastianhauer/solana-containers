@@ -53,9 +53,15 @@ common_build_args = \
 	--build-arg RUST_VERSION=$(rust_version) \
 	--build-arg SOLANA_VERSION=$(SOLANA_VERSION)
 
-# Target image tags
+# Target image tags (platform-specific for builder cache, unified for runtime)
 builder_tag = $(CONTAINER_REGISTRY)/builder:cache-$(subst /,-,$(PLATFORM))
 runtime_tag = $(CONTAINER_REGISTRY)/solana:$(SOLANA_VERSION)-$(DISTRO)-$(DISTRO_RELEASE)$(distro_variant_tag)
+latest_tag = $(CONTAINER_REGISTRY)/solana:latest-$(DISTRO)-$(DISTRO_RELEASE)$(distro_variant_tag)
+
+# Add conditional tag argument
+runtime_tags = \
+	--tag $(runtime_tag) \
+	$(if $(CI),--tag $(latest_tag))
 
 # Buildx configuration
 buildx_args = \
@@ -120,7 +126,7 @@ build-runtime:
 		$(buildx_args) \
 		$(common_build_args) \
 		--platform $(PLATFORM) \
-		--tag $(runtime_tag) \
+		$(runtime_tags) \
 		$(cache_args) \
 		--file containers/$(DISTRO).Dockerfile \
 		containers
