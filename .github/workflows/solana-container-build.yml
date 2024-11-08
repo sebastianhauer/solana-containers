@@ -18,37 +18,81 @@ permissions:
   packages: write
 
 jobs:
+  # Check for available self-hosted runners
+  check-runners:
+    runs-on: ubuntu-latest
+    outputs:
+      has-arm64: ${{ steps.check-runners.outputs.has-arm64 }}
+    steps:
+      - id: check-runners
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check for self-hosted ARM64 runner
+          has_arm64=$(gh api \
+            repos/${{ github.repository }}/actions/runners \
+            --jq '[.runners[].labels[].name] | contains(["self-hosted-linux-arm64"]) | tostring')
+          echo "has-arm64=${has_arm64}" >> $GITHUB_OUTPUT
+          echo "ARM64 runner available: ${has_arm64}"
+
+  # Build container images for each platform and variant
   build:
+    needs: check-runners
     strategy:
       matrix:
-        include:
+        config:
+          # AMD64 builds always run on GitHub-hosted runners
           - platform: linux/amd64
             runs-on: ubuntu-latest
+            distro:
+              name: debian
+              release: bullseye
+              variant: ""  # full version
+          - platform: linux/amd64
+            runs-on: ubuntu-latest
+            distro:
+              name: debian
+              release: bullseye
+              variant: slim
+
+          # ARM64 builds only run when self-hosted runner is available
           - platform: linux/arm64
             runs-on: self-hosted-linux-arm64
-        distro:
-          - name: debian
-            release: bullseye
-            variant: slim
-          - name: debian
-            release: bullseye
-            variant: ""
+            distro:
+              name: debian
+              release: bullseye
+              variant: ""  # full version
+            condition: ${{ needs.check-runners.outputs.has-arm64 == 'true' }}
+          - platform: linux/arm64
+            runs-on: self-hosted-linux-arm64
+            distro:
+              name: debian
+              release: bullseye
+              variant: slim
+            condition: ${{ needs.check-runners.outputs.has-arm64 == 'true' }}
+        # Filter out configurations where condition is false
+        include:
+          - ${{ fromJson(matrix.config.condition || 'true') }}
+      # Don't fail all jobs if one fails
       fail-fast: false
-    name: build (${{ matrix.platform }}, ${{ matrix.distro.name }}, ${{ matrix.distro.release }}${{ matrix.distro.variant && format(', {0}', matrix.distro.variant) }})
-    runs-on: ${{ matrix.runs-on }}
+
+    name: build (${{ matrix.config.platform }}, ${{ matrix.config.distro.name }}, ${{ matrix.config.distro.release }}${{ matrix.config.distro.variant && format(', {0}', matrix.config.distro.variant) }})
+    runs-on: ${{ matrix.config.runs-on }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and push multi-platform images
+      - name: Build and push container image
         uses: ./.github/actions/build-platform
         with:
-          platform: ${{ matrix.platform }}
-          distro: ${{ matrix.distro.name }}
-          distro_release: ${{ matrix.distro.release }}
-          distro_variant: ${{ matrix.distro.variant }}
+          platform: ${{ matrix.config.platform }}
+          distro: ${{ matrix.config.distro.name }}
+          distro_release: ${{ matrix.config.distro.release }}
+          distro_variant: ${{ matrix.config.distro.variant }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  # Cleanup old container images
   cleanup:
     needs: [build]
     runs-on: ubuntu-latest
@@ -56,7 +100,9 @@ jobs:
       - name: Delete old container images
         uses: actions/delete-package-versions@v4
         with:
-          package-name: 'solana-containers'
-          package-type: 'container'
+          # Use the full package name including owner
+          package-name: ${{ github.repository_owner }}/solana-containers
+          package-type: container
           min-versions-to-keep: 5
-          delete-only-untagged-versions: 'true'
+          delete-only-untagged-versions: true
+          token: ${{ secrets.GITHUB_TOKEN }}
