@@ -1,6 +1,6 @@
 services:
   runner:
-    image: summerwind/actions-runner:latest
+    image: summerwind/actions-runner-dind:ubuntu-22.04
     platform: linux/arm64
     container_name: github-runner
     restart: always
@@ -12,8 +12,8 @@ services:
       RUNNER_TOKEN: ${RUNNER_TOKEN}
       RUNNER_SCOPE: repo
       RUNNER_WORKDIR: /runner/work
-      DOCKER_HOST: unix:///var/run/docker.sock
       CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner/config
+      DOCKER_HOST: unix:///var/run/docker.sock
     volumes:
       - type: bind
         source: ${RUNNER_WORK_DIR}
@@ -21,8 +21,17 @@ services:
       - type: bind
         source: ${RUNNER_CONFIG_DIR}
         target: /runner/config
-      - type: bind
-        source: ${DOCKER_SOCKET}
-        target: /var/run/docker.sock
-        read_only: true
+      ## Not needed for docker-in-docker
+      # - type: bind
+      #   source: ${DOCKER_SOCKET}
+      #   target: /var/run/docker.sock
+    group_add:
+      - ${DOCKER_GROUP_ID:-0}
+    security_opt:
+      - label:disable
+      - seccomp=unconfined
+      - apparmor=unconfined
+    cap_add:
+      - CAP_NET_ADMIN
+      - CAP_NET_RAW
     privileged: true

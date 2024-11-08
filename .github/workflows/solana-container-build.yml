@@ -40,7 +40,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: ./.github/actions/build-platform
+      - name: Build and push multi-platform images
+        uses: ./.github/actions/build-platform
         with:
           platform: ${{ matrix.platform }}
           distro: ${{ matrix.distro.name }}
