@@ -40,12 +40,16 @@ runs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build builder stage
+      if: inputs.distro_variant == ''  # Only build once per platform
       run: make build-builder
       env:
         CI: true
         DOCKER_BUILDKIT: 1
         PLATFORM: ${{ inputs.platform }}
         CONTAINER_REGISTRY: ghcr.io/${{ github.repository }}
+        DISTRO: ${{ inputs.distro }}
+        DISTRO_RELEASE: ${{ inputs.distro_release }}
+        DISTRO_VARIANT: ${{ inputs.distro_variant }}
       shell: bash
 
     - name: Build runtime variants
