@@ -60,4 +60,4 @@ echo "Generated matrix:"
 echo "$matrix" | jq '.'
 
 # Output the matrix
-echo "matrix=$matrix" >> $GITHUB_OUTPUT
+echo "matrix=$(echo "$matrix" | jq -c '.')" >> "$GITHUB_OUTPUT"
