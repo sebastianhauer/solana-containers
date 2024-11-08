@@ -34,6 +34,7 @@ jobs:
             release: bullseye
             variant: ""
       fail-fast: false
+    name: build (${{ matrix.platform }}, ${{ matrix.distro.name }}, ${{ matrix.distro.release }}${{ matrix.distro.variant && format(', {0}', matrix.distro.variant) }})
     runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Checkout repository
