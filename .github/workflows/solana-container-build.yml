@@ -62,18 +62,18 @@ jobs:
               name: debian
               release: bullseye
               variant: ""  # full version
-            condition: ${{ needs.check-runners.outputs.has-arm64 == 'true' }}
           - platform: linux/arm64
             runs-on: self-hosted-linux-arm64
             distro:
               name: debian
               release: bullseye
               variant: slim
-            condition: ${{ needs.check-runners.outputs.has-arm64 == 'true' }}
+        exclude:
+          # Exclude ARM64 builds if no runner is available
+          - platform: linux/arm64
+            runs-on: self-hosted-linux-arm64
+            if: ${{ needs.check-runners.outputs.has-arm64 != 'true' }}
       fail-fast: false
-
-    # Only run if no condition is set (AMD64) or if condition is true (ARM64)
-    if: ${{ !matrix.config.condition || fromJson(matrix.config.condition) }}
 
     name: build (${{ matrix.config.platform }}, ${{ matrix.config.distro.name }}, ${{ matrix.config.distro.release }}${{ matrix.config.distro.variant && format(', {0}', matrix.config.distro.variant) }})
     runs-on: ${{ matrix.config.runs-on }}
