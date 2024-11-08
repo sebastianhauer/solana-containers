@@ -1,0 +1,61 @@
+name: Build Platform
+description: Builds Solana container images for a specific platform
+
+inputs:
+  platform:
+    description: Target platform architecture (linux/amd64 or linux/arm64)
+    required: true
+    type: string
+  distro:
+    description: Base Linux distribution for the container (e.g., debian)
+    required: true
+    type: string
+  distro_release:
+    description: Distribution version/release name (e.g., bullseye)
+    required: true
+    type: string
+  distro_variant:
+    description: Distribution variant type (e.g., slim, full)
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: ${{ inputs.platform }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        platforms: ${{ inputs.platform }}
+
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build builder stage
+      run: make build-builder
+      env:
+        CI: true
+        DOCKER_BUILDKIT: 1
+        PLATFORM: ${{ inputs.platform }}
+        CONTAINER_REGISTRY: ghcr.io/${{ github.repository }}
+      shell: bash
+
+    - name: Build runtime variants
+      run: make build-runtime
+      env:
+        CI: true
+        DOCKER_BUILDKIT: 1
+        PLATFORM: ${{ inputs.platform }}
+        CONTAINER_REGISTRY: ghcr.io/${{ github.repository }}
+        DISTRO: ${{ inputs.distro }}
+        DISTRO_RELEASE: ${{ inputs.distro_release }}
+        DISTRO_VARIANT: ${{ inputs.distro_variant }}
+      shell: bash

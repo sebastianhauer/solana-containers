@@ -11,92 +11,41 @@ on:
     # │ │ │ │ │
     # 0 2 * * 4    Run every Thursday at 02:00 UTC
     - cron: '0 2 * * 4'
-  # Optional: Allow manual triggering
   workflow_dispatch:
-
 
 permissions:
   contents: read
   packages: write
-  
+
 jobs:
-  builder:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [linux/amd64, linux/arm64]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: ${{ matrix.platform }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          platforms: ${{ matrix.platform }}
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build builder stage
-        run: make build-builder
-        env:
-          CI: true
-          DOCKER_BUILDKIT: 1
-          PLATFORM: ${{ matrix.platform }}
-          CONTAINER_REGISTRY: ghcr.io/${{ github.repository }}
-
-  runtime:
-    needs: builder
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         platform: [linux/amd64, linux/arm64]
         distro:
-          - { name: debian, release: bullseye, variant: slim }
-          - { name: debian, release: bullseye, variant: "" }
+          - name: debian
+            release: bullseye
+            variant: slim
+          - name: debian
+            release: bullseye
+            variant: ""
+      fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - uses: ./.github/actions/build-platform
         with:
-          platforms: ${{ matrix.platform }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          platforms: ${{ matrix.platform }}
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build runtime
-        run: make build-runtime
-        env:
-          CI: true
-          DOCKER_BUILDKIT: 1
-          PLATFORM: ${{ matrix.platform }}
-          CONTAINER_REGISTRY: ghcr.io/${{ github.repository }}
-          DISTRO: ${{ matrix.distro.name }}
-          DISTRO_RELEASE: ${{ matrix.distro.release }}
-          DISTRO_VARIANT: ${{ matrix.distro.variant }}
+          platform: ${{ matrix.platform }}
+          distro: ${{ matrix.distro.name }}
+          distro_release: ${{ matrix.distro.release }}
+          distro_variant: ${{ matrix.distro.variant }}
 
   cleanup:
-    needs: [runtime]
+    needs: [build]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Delete old container images
         uses: actions/delete-package-versions@v4
