@@ -74,13 +74,39 @@ Environment variables that can be set:
 ## GitHub Actions Workflow
 
 The project includes automated builds that:
-- Run weekly on Thursday at 02:00 UTC
+- Run monthly
 - Support manual triggering
 - Build for multiple architectures
 - Clean up old container images
 
+## Self-Hosted ARM64 Runner
+
+To support ARM64 builds in our CI pipeline, we maintain a self-hosted GitHub Actions runner. While GitHub-hosted runners handle the AMD64 builds, we use our own ARM64 runner to ensure proper multi-architecture support. For details on setting up and managing the runner, see our [self-hosted runner documentation](.github/runner/self-hosted-github-runner.md).
+
+## Available Docker Images
+
+Pre-built Docker images are available from the GitHub Container Registry for both x86_64 (AMD64) and ARM64 architectures:
+
+```shell
+# Pull the latest image (Docker will automatically select the correct architecture)
+docker pull ghcr.io/sebastianhauer/solana-containers/solana:latest-debian-bullseye
+
+# Explicitly pull for a specific architecture
+docker pull --platform linux/amd64 ghcr.io/sebastianhauer/solana-containers/solana:latest-debian-bullseye
+docker pull --platform linux/arm64 ghcr.io/sebastianhauer/solana-containers/solana:latest-debian-bullseye
+```
+
+Available variants:
+- `latest-debian-bullseye`: Full Debian Bullseye-based image
+- `latest-debian-bullseye-slim`: Minimal Debian Bullseye-based image
+
+All variants are built for both x86_64 and ARM64 architectures, making them suitable for:
+- Standard x86_64 servers and cloud instances
+- ARM64-based servers (e.g., AWS Graviton, Apple Silicon Macs)
+
+View all available tags and versions in the [GitHub Container Registry](https://github.com/sebastianhauer/solana-containers/pkgs/container/solana-containers%2Fsolana).
+
+
 ## Additional Resources
 
-- [Docker Buildx Documentation](https://docs.docker.com/buildx/working-with-buildx/)
-- [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 - [Solana Documentation](https://docs.solana.com/)
