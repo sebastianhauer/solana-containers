@@ -71,5 +71,7 @@ echo "$matrix" | jq '.'
 # Generate the matrix output
 matrix_output=$(echo "$matrix" | jq -c '.')
 
+echo "Writing matrix to $output_file"
+
 # Write to the specified output file
 echo "matrix=${matrix_output}" >> "$output_file"
