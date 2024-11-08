@@ -1,0 +1,7 @@
+[
+  {
+    "name": "debian",
+    "release": "bullseye",
+    "variants": ["", "slim"]
+  }
+] 

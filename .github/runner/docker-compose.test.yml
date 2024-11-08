@@ -1,0 +1,44 @@
+services:
+  runner-test:
+    image: summerwind/actions-runner-dind:latest
+    platform: linux/arm64
+    container_name: github-runner-test
+    tty: true
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      BUILDKIT_PROGRESS: plain
+      DOCKER_BUILDKIT: 1
+      RUNNER_SCOPE: "test"  # Prevent runner registration
+      DISABLE_RUNNER: "true"  # Prevent runner registration
+    command: |
+      bash -c '
+        echo "=== Starting Tests ==="
+
+        echo "=== Docker Version ==="
+        docker version || exit 1
+
+        echo "=== Docker Info ==="
+        docker info || exit 1
+
+        echo "=== Buildx List ==="
+        docker buildx ls || exit 1
+
+        echo "=== Test Build ==="
+        echo "FROM alpine" > Dockerfile
+        echo "RUN echo test > /test.txt" >> Dockerfile
+        docker buildx build --progress=plain --platform linux/arm64 -t test:latest . || exit 1
+        rm Dockerfile
+
+        echo "=== Tests Complete ==="
+      '
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
+    cap_add:
+      - CAP_NET_ADMIN
+      - CAP_NET_RAW
+    privileged: true

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "amd64",
+    "platform": "linux/amd64",
+    "runs-on": "ubuntu-latest",
+    "enabled": true
+  },
+  {
+    "name": "arm64",
+    "platform": "linux/arm64",
+    "runs-on": "self-hosted-linux-arm64",
+    "enabled": false
+  }
+] 

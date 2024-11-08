@@ -20,92 +20,29 @@ permissions:
   id-token: write
 
 jobs:
-  # Check for available self-hosted runners
-  check-runners:
+  # Generate build matrix based on available runners
+  gen-matrix:
     runs-on: ubuntu-latest
     outputs:
-      has-arm64: ${{ steps.check-runners.outputs.has-arm64 }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - id: check-runners
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate distro matrix
+        run: ./.github/scripts/gen-distro-matrix.sh
         env:
           GH_TOKEN: ${{ secrets.RUNNER_PAT }}
-        run: |
-          # Get runners with explicit authentication
-          response=$(curl --location \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer ${{ env.GH_TOKEN }}" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            --silent \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runners")
-
-          echo "API Response:"
-          echo "$response" | jq '.'
-
-          # Check for ARM64 runner
-          if echo "$response" | jq -e '.runners[] | select(.status=="online") | .labels[] | select(.name=="self-hosted-linux-arm64")' > /dev/null; then
-            echo "has-arm64=true" >> $GITHUB_OUTPUT
-            echo "ARM64 runner available: true"
-          else
-            echo "has-arm64=false" >> $GITHUB_OUTPUT
-            echo "ARM64 runner available: false"
-          fi
 
   # Build container images for each platform and variant
   build:
-    needs: check-runners
+    needs: gen-matrix
     strategy:
-      matrix:
-        config:
-          # AMD64 builds always run on GitHub-hosted runners
-          - platform: linux/amd64
-            runs-on: ubuntu-latest
-            distro:
-              name: debian
-              release: bullseye
-              variant: ""  # full version
-          - platform: linux/amd64
-            runs-on: ubuntu-latest
-            distro:
-              name: debian
-              release: bullseye
-              variant: slim
-
-          # ARM64 builds only run when self-hosted runner is available
-          - platform: linux/arm64
-            runs-on: self-hosted-linux-arm64
-            distro:
-              name: debian
-              release: bullseye
-              variant: ""  # full version
-          - platform: linux/arm64
-            runs-on: self-hosted-linux-arm64
-            distro:
-              name: debian
-              release: bullseye
-              variant: slim
-        exclude:
-          # Exclude ARM64 builds if no runner is available
-          - config:
-              platform: linux/arm64
-              runs-on: self-hosted-linux-arm64
-              distro:
-                name: debian
-                release: bullseye
-                variant: ""
-            if: ${{ needs.check-runners.outputs.has-arm64 != 'true' }}
-          - config:
-              platform: linux/arm64
-              runs-on: self-hosted-linux-arm64
-              distro:
-                name: debian
-                release: bullseye
-                variant: slim
-            if: ${{ needs.check-runners.outputs.has-arm64 != 'true' }}
+      matrix: ${{ fromJson(needs.gen-matrix.outputs.matrix) }}
       fail-fast: false
 
     name: build (${{ matrix.config.platform }}, ${{ matrix.config.distro.name }}, ${{ matrix.config.distro.release }}${{ matrix.config.distro.variant && format(', {0}', matrix.config.distro.variant) }})
     runs-on: ${{ matrix.config.runs-on }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
