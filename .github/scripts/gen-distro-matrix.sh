@@ -38,20 +38,23 @@ echo "$distros" | jq '.'
 matrix=$(jq -n \
   --argjson platforms "$platforms" \
   --argjson distros "$distros" \
-  '{config: [
-    $platforms[] | select(.enabled == true) as $p |
-    $distros[] as $d |
-    $d.variants[] as $v |
-    {
-      platform: $p.platform,
-      runs-on: $p.runs-on,
-      distro: {
-        name: $d.name,
-        release: $d.release,
-        variant: $v
+  '{
+    "config": [
+      $platforms[] |
+      select(.enabled == true) as $p |
+      $distros[] as $d |
+      $d.variants[] as $v |
+      {
+        "platform": $p.platform,
+        "runs-on": $p.runs-on,
+        "distro": {
+          "name": $d.name,
+          "release": $d.release,
+          "variant": $v
+        }
       }
-    }
-  ]}')
+    ]
+  }')
 
 echo "Generated matrix:"
 echo "$matrix" | jq '.'
