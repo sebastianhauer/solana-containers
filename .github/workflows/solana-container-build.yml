@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate distro matrix
-        run: ./.github/scripts/gen-distro-matrix.sh
+        run: ./.github/scripts/gen-distro-matrix.sh "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.RUNNER_PAT }}
 

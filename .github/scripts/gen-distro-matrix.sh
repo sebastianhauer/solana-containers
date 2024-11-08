@@ -2,6 +2,15 @@
 
 set -euo pipefail
 
+# Check for required output file argument
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 OUTPUT_FILE"
+    echo "Generate build matrix and write to specified output file"
+    exit 1
+fi
+
+output_file="$1"
+
 echo "Checking for ARM64 runner availability..."
 
 # Check for ARM64 runner availability
@@ -59,5 +68,8 @@ matrix=$(jq -n \
 echo "Generated matrix:"
 echo "$matrix" | jq '.'
 
-# Output the matrix
-echo "matrix=$(echo "$matrix" | jq -c '.')" >> "$GITHUB_OUTPUT"
+# Generate the matrix output
+matrix_output=$(echo "$matrix" | jq -c '.')
+
+# Write to the specified output file
+echo "matrix=${matrix_output}" >> "$output_file"
