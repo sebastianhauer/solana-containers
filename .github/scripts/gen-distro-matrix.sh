@@ -20,8 +20,8 @@ has_arm64=$(echo "$response" | jq -e '.runners[] | select(.status=="online") | .
 echo "ARM64 runner available: $has_arm64"
 
 # Load configurations
-platforms=$(cat .github/configs/platforms.json)
-distros=$(cat .github/configs/distros.json)
+platforms=$(jq '.' .github/configs/platforms.json)
+distros=$(jq '.' .github/configs/distros.json)
 
 # Enable ARM64 if runner is available
 if [ "$has_arm64" = "true" ]; then
@@ -46,7 +46,7 @@ matrix=$(jq -n \
       $d.variants[] as $v |
       {
         "platform": $p.platform,
-        "runs-on": $p.runs-on,
+        "runs-on": $p["runs-on"],
         "distro": {
           "name": $d.name,
           "release": $d.release,
