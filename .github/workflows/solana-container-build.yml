@@ -26,15 +26,20 @@ jobs:
       has-arm64: ${{ steps.check-runners.outputs.has-arm64 }}
     steps:
       - id: check-runners
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check for self-hosted ARM64 runner
-          has_arm64=$(gh api \
-            repos/${{ github.repository }}/actions/runners \
-            --jq '[.runners[].labels[].name] | contains(["self-hosted-linux-arm64"]) | tostring')
-          echo "has-arm64=${has_arm64}" >> $GITHUB_OUTPUT
-          echo "ARM64 runner available: ${has_arm64}"
+          # Check if self-hosted-linux-arm64 runner is available
+          if curl -s "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runners" \
+             -H "Authorization: Bearer $GITHUB_TOKEN" \
+             -H "Accept: application/vnd.github.v3+json" | \
+             jq -e '.runners[] | select(.labels[].name == "self-hosted-linux-arm64")' > /dev/null; then
+            echo "has-arm64=true" >> $GITHUB_OUTPUT
+            echo "ARM64 runner available: true"
+          else
+            echo "has-arm64=false" >> $GITHUB_OUTPUT
+            echo "ARM64 runner available: false"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Build container images for each platform and variant
   build:
