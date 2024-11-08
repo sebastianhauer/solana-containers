@@ -45,6 +45,7 @@ jobs:
           distro: ${{ matrix.distro.name }}
           distro_release: ${{ matrix.distro.release }}
           distro_variant: ${{ matrix.distro.variant }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   cleanup:
     needs: [build]

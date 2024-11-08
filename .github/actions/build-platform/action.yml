@@ -18,14 +18,18 @@ inputs:
     description: Distribution variant type (e.g., slim, full)
     required: true
     type: string
+  token:
+    description: GitHub token for GHCR access
+    required: true
+    type: string
 
 runs:
   using: "composite"
   steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: ${{ inputs.platform }}
+    # - name: Set up QEMU
+    #   uses: docker/setup-qemu-action@v3
+    #   with:
+    #     platforms: ${{ inputs.platform }}
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -37,7 +41,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.token }}
 
     - name: Build builder stage
       if: inputs.distro_variant == ''  # Only build once per platform
