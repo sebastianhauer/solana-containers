@@ -1,0 +1,28 @@
+services:
+  runner:
+    image: summerwind/actions-runner:latest
+    platform: linux/arm64
+    container_name: github-runner
+    restart: always
+    environment:
+      RUNNER_NAME: ${RUNNER_NAME}
+      RUNNER_LABELS: ${RUNNER_LABELS}
+      RUNNER_REPO: ${RUNNER_REPO}
+      REPO_URL: https://github.com/${RUNNER_REPO}
+      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      RUNNER_SCOPE: repo
+      RUNNER_WORKDIR: /runner/work
+      DOCKER_HOST: unix:///var/run/docker.sock
+      CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner/config
+    volumes:
+      - type: bind
+        source: ${RUNNER_WORK_DIR}
+        target: /runner/work
+      - type: bind
+        source: ${RUNNER_CONFIG_DIR}
+        target: /runner/config
+      - type: bind
+        source: ${DOCKER_SOCKET}
+        target: /var/run/docker.sock
+        read_only: true
+    privileged: true
