@@ -27,11 +27,17 @@ jobs:
     steps:
       - id: check-runners
         run: |
-          # Check if self-hosted-linux-arm64 runner is available
-          if curl -s "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runners" \
-             -H "Authorization: Bearer $GITHUB_TOKEN" \
-             -H "Accept: application/vnd.github.v3+json" | \
-             jq -e '.runners[] | select(.labels[].name == "self-hosted-linux-arm64")' > /dev/null; then
+          # Get runners and store response
+          response=$(curl -s "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners" \
+                    -H "Authorization: Bearer $GITHUB_TOKEN" \
+                    -H "Accept: application/vnd.github.v3+json")
+
+          # Debug: Show response structure (excluding sensitive data)
+          echo "API Response Structure: $response"
+          echo "$response" | jq 'del(.runners[].token)' || echo "No runners found"
+
+          # Check for ARM64 runner
+          if echo "$response" | jq -e '.runners // [] | map(.labels[].name) | contains(["self-hosted-linux-arm64"])' > /dev/null; then
             echo "has-arm64=true" >> $GITHUB_OUTPUT
             echo "ARM64 runner available: true"
           else
