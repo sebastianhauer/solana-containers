@@ -70,11 +70,10 @@ jobs:
               release: bullseye
               variant: slim
             condition: ${{ needs.check-runners.outputs.has-arm64 == 'true' }}
-        # Filter out configurations where condition is false
-        include:
-          - ${{ fromJson(matrix.config.condition || 'true') }}
-      # Don't fail all jobs if one fails
       fail-fast: false
+
+    # Only run if no condition is set (AMD64) or if condition is true (ARM64)
+    if: ${{ !matrix.config.condition || fromJson(matrix.config.condition) }}
 
     name: build (${{ matrix.config.platform }}, ${{ matrix.config.distro.name }}, ${{ matrix.config.distro.release }}${{ matrix.config.distro.variant && format(', {0}', matrix.config.distro.variant) }})
     runs-on: ${{ matrix.config.runs-on }}
